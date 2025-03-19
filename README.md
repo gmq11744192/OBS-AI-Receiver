@@ -41,7 +41,7 @@ UDP视频接收器是一个基于Python的应用程序，专门用于通过UDP�
 
 1. 克隆此仓库：
    ```bash
-   git clone https://github.com/你的用户名/UDP视频接收器.git
+   git clone https://github.com/gmq11744192/OBS-AI-Receiver.git
    cd UDP视频接收器
    ```
 
