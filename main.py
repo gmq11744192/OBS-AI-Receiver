@@ -28,18 +28,14 @@ class VideoReceiver:
 
         # 启动UI更新
         self.update_ui()
-        
+
         # 窗口居中
         self.center_window()
 
     def setup_gui(self):
         """创建可视化界面"""
-        self.master.title("UDP视频接收端")
-        
-        # 设置窗口默认最大化
-        self.master.state('zoomed')  # Windows系统上最大化窗口
-        # 在Linux或Mac上可使用：self.master.attributes('-zoomed', True)
-        
+        self.master.title("视频接收端")
+
         # 设置区域
         settings_frame = ttk.LabelFrame(self.master, text="设置")
         settings_frame.pack(fill=tk.X, padx=10, pady=5)
@@ -47,11 +43,11 @@ class VideoReceiver:
         # IP和端口设置
         network_frame = ttk.Frame(settings_frame)
         network_frame.pack(fill=tk.X, padx=5, pady=5)
-        
+
         ttk.Label(network_frame, text="IP地址:").grid(row=0, column=0, padx=5, pady=5)
         self.ip_var = tk.StringVar(value="0.0.0.0")
         ttk.Entry(network_frame, textvariable=self.ip_var, width=15).grid(row=0, column=1, padx=5, pady=5)
-        
+
         ttk.Label(network_frame, text="端口:").grid(row=0, column=2, padx=5, pady=5)
         self.port_var = tk.StringVar(value="6060")
         ttk.Entry(network_frame, textvariable=self.port_var, width=6).grid(row=0, column=3, padx=5, pady=5)
@@ -78,14 +74,13 @@ class VideoReceiver:
         self.stop_button = ttk.Button(control_frame, text="停止接收", command=self.stop_receiving, state=tk.DISABLED)
         self.stop_button.pack(side=tk.LEFT, padx=5)
 
-        # 视频显示容器（使用Frame作为容器，占据所有可用空间）
+        # 视频显示容器（使用Frame作为容器）
         self.display_container = ttk.Frame(self.master)
         self.display_container.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
-        
-        # 视频显示区域（放置在容器的中央）
+
+        # 视频显示区域
         self.video_frame = ttk.Label(self.display_container)
-        # 不使用pack()，而是直接使用place居中定位
-        self.video_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        self.video_frame.pack(expand=True)
 
         # 状态显示区域
         status_frame = ttk.Frame(self.master)
@@ -112,14 +107,14 @@ class VideoReceiver:
             # 获取用户输入的IP和端口
             ip = self.ip_var.get().strip()
             port = self.port_var.get().strip()
-            
+
             # 验证IP和端口
             if not ip or not port.isdigit():
                 raise ValueError("请输入有效的IP地址和端口号")
-                
+
             # 构建UDP URL
             self.udp_url = f"udp://@{ip}:{port}"
-            
+
             # 获取用户输入的尺寸
             self.width = int(self.width_var.get())
             self.height = int(self.height_var.get())
@@ -129,7 +124,7 @@ class VideoReceiver:
 
             # 调整窗口大小以适应视频
             self.adjust_window_size()
-                
+
             # 启动FFmpeg进程
             self.start_ffmpeg()
 
@@ -149,10 +144,20 @@ class VideoReceiver:
             self.lbl_status.config(text=f"错误: {str(e)}")
 
     def adjust_window_size(self):
-        """调整视频显示而不改变窗口大小"""
-        # 在全屏/最大化模式下，我们不需要调整窗口大小
-        # 只需确保视频画面正确居中即可
-        pass
+        """调整窗口大小以适应视频"""
+        # 获取当前设置区域和状态栏高度
+        self.master.update_idletasks()
+        settings_height = self.master.winfo_height() - self.display_container.winfo_height()
+
+        # 计算新窗口尺寸（为视频尺寸添加边距）
+        new_width = max(self.width + 40, 400)  # 最小宽度400
+        new_height = self.height + settings_height + 40
+
+        # 设置窗口尺寸
+        self.master.geometry(f"{new_width}x{new_height}")
+
+        # 重新居中窗口
+        self.center_window()
 
     def stop_receiving(self):
         """停止接收视频"""
@@ -216,12 +221,10 @@ class VideoReceiver:
                 # 使用PIL处理图像显示
                 image = Image.fromarray(frame)
                 photo = ImageTk.PhotoImage(image=image)
-                
-                # 更新视频帧并确保它居中显示
                 self.video_frame.configure(image=photo)
                 self.video_frame.image = photo  # 保持引用以防止垃圾回收
-                
-                # 重新定位视频帧到屏幕中央
+
+                # 确保视频帧居中显示
                 self.video_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
             except Exception as e:
